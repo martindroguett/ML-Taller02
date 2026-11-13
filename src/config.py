@@ -11,7 +11,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Raíz del repositorio (un nivel sobre src/).
 RAIZ = Path(__file__).resolve().parent.parent
 load_dotenv(RAIZ / ".env")
 
@@ -26,7 +25,6 @@ DIR_CACHE = Path(_cache) if Path(_cache).is_absolute() else RAIZ / _cache
 RANDOM_STATE = int(os.getenv("RANDOM_STATE", "42"))
 TEST_SIZE = float(os.getenv("TEST_SIZE", "0.25"))
 
-# Dimensiones que se informan en la tabla. LDA queda acotada a C - 1.
 DIMENSIONES = (10, 20, 30)
 DIMENSION_MAPAS = 20
 
@@ -36,6 +34,15 @@ UMAP_MIN_DIST = 0.1
 
 CLASIFICADORES = ("svm", "knn", "arbol")
 EMBEDDINGS = ("pca", "lda", "fisherfaces")
+
+LFW_MIN_FOTOS = 20
+LFW_MAX_IDENTIDADES = 50
+LFW_RESIZE = 0.5
+
+REPETICIONES_TIEMPO = 5
+
+SEMILLAS_ROBUSTEZ = tuple(RANDOM_STATE + i for i in range(5))
+D_PCA_VARIANTE = 100
 
 
 def ruta_modelo(dataset: str, embedding: str, modelo: str, d: int) -> Path:

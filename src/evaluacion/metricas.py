@@ -3,16 +3,41 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
+from src.config import REPETICIONES_TIEMPO
 from src.modelos import ResultadoClasificacion
+
+
+def cronometrar(
+    accion: Callable[[], Any],
+    repeticiones: int = REPETICIONES_TIEMPO,
+) -> tuple[Any, float]:
+    """Repite ``accion`` y devuelve su último resultado con la mediana del tiempo.
+
+    Una sola medición de milisegundos depende demasiado de lo que esté
+    haciendo el equipo en ese instante.
+    """
+    if repeticiones < 1:
+        raise ValueError("Se necesita al menos una repetición para medir.")
+    tiempos = []
+    for _ in range(repeticiones):
+        inicio = time.perf_counter()
+        resultado = accion()
+        tiempos.append(time.perf_counter() - inicio)
+    return resultado, float(np.median(tiempos))
 
 
 class Evaluador:
     """Ajusta el clasificador en Z_train y mide solo sobre Z_test."""
+
+    def __init__(self, repeticiones: int = REPETICIONES_TIEMPO) -> None:
+        self.repeticiones = repeticiones
 
     def evaluar(
         self,
@@ -23,10 +48,11 @@ class Evaluador:
         y_test: np.ndarray,
     ) -> ResultadoClasificacion:
         etiquetas = np.unique(y_train)
-        inicio = time.perf_counter()
-        modelo.fit(Z_train, y_train)
-        predicciones = np.asarray(modelo.predict(Z_test))
-        tiempo_s = time.perf_counter() - inicio
+        # Con semilla fija, cada repetición ajusta el mismo modelo.
+        predicciones, tiempo_s = cronometrar(
+            lambda: np.asarray(modelo.fit(Z_train, y_train).predict(Z_test)),
+            self.repeticiones,
+        )
         if predicciones.shape != (y_test.shape[0],):
             raise ValueError(
                 f"Se esperaban {y_test.shape[0]} predicciones y llegaron {predicciones.shape}."
@@ -35,7 +61,7 @@ class Evaluador:
         return ResultadoClasificacion(
             accuracy=float(accuracy_score(y_test, predicciones)),
             macro_f1=float(f1_score(y_test, predicciones, average="macro", zero_division=0)),
-            tiempo_s=float(tiempo_s),
+            tiempo_s=tiempo_s,
             predicciones=predicciones,
             matriz=matriz,
         )

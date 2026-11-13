@@ -35,3 +35,4 @@ docs/
 # Sistema
 .DS_Store
 *.swp
+.vscode/

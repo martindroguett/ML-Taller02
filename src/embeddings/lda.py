@@ -40,3 +40,7 @@ class ExtractorLDA(ExtractorEmbedding):
 
     def transform(self, X: np.ndarray) -> np.ndarray:
         return self.comprobar(self._modelo.transform(X), X.shape[0])
+
+    def direcciones(self) -> np.ndarray:
+        """W_LDA con una dirección discriminante por columna: forma (p, d)."""
+        return self._modelo.scalings_[:, : self.n_components]

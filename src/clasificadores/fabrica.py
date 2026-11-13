@@ -11,9 +11,6 @@ from sklearn.tree import DecisionTreeClassifier
 
 from src.config import CLASIFICADORES, RANDOM_STATE
 
-# scikit-learn 1.9 depreca probability=True dentro de fit.
-# El aviso se silencia solo para ese mensaje: predict debe seguir el margen.
-# CalibratedClassifierCV cambia la identidad elegida.
 warnings.filterwarnings(
     "ignore",
     message=r"The `probability` parameter was deprecated",
@@ -55,8 +52,9 @@ class FabricaClasificadores:
         """Qué significa el número que muestra la interfaz."""
         notas = {
             "svm": (
-                "SVM lineal: probabilidad calibrada (escalado de Platt) "
-                "a partir del margen. No es una frecuencia de votos."
+                "SVM lineal: la identidad se decide por el margen y la "
+                "probabilidad se calibra aparte (escalado de Platt), así que "
+                "la identidad predicha puede no ser la de mayor probabilidad."
             ),
             "knn": (
                 "k-NN con k=3: la probabilidad es la fracción de vecinos "

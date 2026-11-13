@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from src.config import DIMENSIONES
+from src.config import D_PCA_VARIANTE, DIMENSIONES
 from src.embeddings.base import ExtractorEmbedding
 from src.embeddings.fisherfaces import ExtractorFisherfaces
 from src.embeddings.lda import ExtractorLDA
@@ -25,7 +25,7 @@ class FabricaExtractores:
         raise ValueError(f"Embedding desconocido: {nombre}")
 
     def para_experimento(self, n_clases: int) -> list[ExtractorEmbedding]:
-        """PCA y LDA en d = 10, 20, 30, más Fisherfaces para que el alumno lo active."""
+        """PCA, LDA y Fisherfaces en d = 10, 20, 30."""
         extractores: list[ExtractorEmbedding] = []
         lda_vistos: set[int] = set()
         for d in DIMENSIONES:
@@ -35,6 +35,23 @@ class FabricaExtractores:
                 lda_vistos.add(d_lda)
                 extractores.append(ExtractorLDA(n_components=d_lda))
             extractores.append(ExtractorFisherfaces(d_pca=d, d_lda=d_lda))
+        return extractores
+
+    def variantes_fisherfaces(self, n_clases: int, n_train: int) -> list[ExtractorEmbedding]:
+        """Fisherfaces con más componentes PCA que LDA; no son parte del protocolo.
+
+        Una variante fija d_pca = 100 y la otra usa d_pca = N − C, el valor
+        del método original de Belhumeur et al. (1997).
+        """
+        opciones = {
+            f"fisherfaces_pca{D_PCA_VARIANTE}": D_PCA_VARIANTE,
+            "fisherfaces_nc": n_train - n_clases,
+        }
+        extractores: list[ExtractorEmbedding] = []
+        for nombre, d_pca in opciones.items():
+            for d in DIMENSIONES:
+                d_lda = self.dimension_lda(d, n_clases)
+                extractores.append(ExtractorFisherfaces(d_pca=d_pca, d_lda=d_lda, nombre=nombre))
         return extractores
 
     @staticmethod

@@ -1,4 +1,4 @@
-"""Figuras del experimento: curva PCA, eigenfaces, confusión y mapas 2D."""
+"""Figuras del experimento: curva PCA, eigenfaces, fisherfaces, confusión y mapas 2D."""
 
 from __future__ import annotations
 
@@ -77,6 +77,32 @@ class Visualizador:
         fig.tight_layout()
         return self._guardar(fig, f"eigenfaces_{dataset}.png")
 
+    def fisherfaces(
+        self,
+        patrones: np.ndarray,
+        dataset: str,
+        d_pca: int,
+        d_lda: int,
+        cantidad: int = 8,
+    ) -> Path:
+        """Primeras direcciones discriminantes vistas como imagen.
+
+        Cada patrón se divide por su máximo absoluto. Rojo y azul son pesos
+        de signo opuesto, no tonos de piel.
+        """
+        cantidad = min(cantidad, patrones.shape[0])
+        fig, ejes = plt.subplots(2, 4, figsize=(8.4, 4.8), layout="constrained")
+        celdas = list(ejes.ravel())
+        for i in range(cantidad):
+            patron = patrones[i] / np.abs(patrones[i]).max()
+            imagen = celdas[i].imshow(patron, cmap="RdBu_r", vmin=-1, vmax=1)
+            celdas[i].set_title(f"Fisherface {i + 1}", fontsize=8)
+        for ax in celdas:
+            ax.axis("off")
+        fig.suptitle(f"Fisherfaces · {dataset} · PCA({d_pca}) → LDA({d_lda})", fontsize=12)
+        fig.colorbar(imagen, ax=celdas, fraction=0.03, label="Peso relativo del píxel")
+        return self._guardar(fig, f"fisherfaces_{dataset}.png")
+
     def confusion(
         self,
         matriz: np.ndarray,
@@ -84,13 +110,21 @@ class Visualizador:
         embedding: str,
         modelo: str,
         d: int,
+        normalizar: bool = False,
     ) -> Path:
+        """Con ``normalizar`` cada fila suma 1 y la diagonal es el recall por identidad."""
+        titulo = f"Confusión · {dataset} · {embedding} d={d} · {modelo}"
+        etiqueta = "Fotos de TEST"
+        if normalizar:
+            matriz = matriz / np.maximum(matriz.sum(axis=1, keepdims=True), 1)
+            titulo += "\nnormalizada por identidad real"
+            etiqueta = "Fracción de las fotos de la identidad real"
         fig, ax = plt.subplots(figsize=(7.2, 6.2))
-        imagen = ax.imshow(matriz, cmap="Blues")
+        imagen = ax.imshow(matriz, cmap="Blues", vmin=0, vmax=1 if normalizar else None)
         ax.set_xlabel("Identidad predicha")
         ax.set_ylabel("Identidad real")
-        ax.set_title(f"Confusión · {dataset} · {embedding} d={d} · {modelo}")
-        fig.colorbar(imagen, ax=ax, fraction=0.046)
+        ax.set_title(titulo)
+        fig.colorbar(imagen, ax=ax, fraction=0.046, label=etiqueta)
         fig.tight_layout()
         nombre = f"confusion_{dataset}_{embedding}_{modelo}_d{d}.png"
         return self._guardar(fig, nombre)

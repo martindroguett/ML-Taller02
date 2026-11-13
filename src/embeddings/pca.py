@@ -46,6 +46,10 @@ class ExtractorPCA(ExtractorEmbedding):
         """Fracción de varianza retenida por las primeras componentes."""
         return np.cumsum(self._modelo.explained_variance_ratio_)
 
+    def componentes(self) -> np.ndarray:
+        """W_PCA con una componente por fila: forma (d, p)."""
+        return self._modelo.components_
+
     def componentes_imagen(self, alto: int, ancho: int) -> np.ndarray:
         """Reordena cada componente a H×W para verla como eigenface."""
         componentes = self._modelo.components_

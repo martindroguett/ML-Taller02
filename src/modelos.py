@@ -23,6 +23,12 @@ class ConjuntoRostros:
     def n_clases(self) -> int:
         return int(np.unique(self.y).size)
 
+    @property
+    def desbalanceado(self) -> bool:
+        """La identidad con más fotos tiene al menos el doble que la de menos."""
+        _, conteos = np.unique(self.y, return_counts=True)
+        return bool(conteos.max() >= 2 * conteos.min())
+
 
 @dataclass
 class Particion:
@@ -50,6 +56,7 @@ class ResultadoExperimento:
     accuracy: float
     macro_f1: float
     tiempo_s: float
+    tiempo_embedding_s: float
 
 
 @dataclass
