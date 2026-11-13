@@ -1,13 +1,16 @@
 name: lab-embeddings-faciales
 channels:
   - conda-forge
+  - nodefaults
 dependencies:
   - python=3.11
-  - numpy
-  - pandas
-  - matplotlib
-  - scikit-learn
-  - streamlit
-  - python-dotenv
-  - umap-learn
-  - joblib
+  - numpy=2.4
+  - pandas=3.1
+  - matplotlib=3.11
+  - scikit-learn=1.9
+  - streamlit=1.67
+  - python-dotenv=1.2
+  - umap-learn=0.6
+  - joblib=1.6
+  - ipykernel=7.4
+  - pytest=9.2
