@@ -1,4 +1,4 @@
-name: lab02-ml-2026-2
+name: lab-embeddings-faciales
 channels:
   - conda-forge
 dependencies:
