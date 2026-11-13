@@ -11,12 +11,14 @@ from src.modelos import ConjuntoRostros, Particion
 
 @pytest.fixture
 def conjunto() -> ConjuntoRostros:
-    """Seis identidades con veinte fotos de 8×8: la media de la identidad más ruido."""
+    """Seis identidades con veinte fotos de 8×8: la media de la identidad más ruido. Los píxeles se llevan a [0, 1], igual que en Olivetti y LFW."""
     rng = np.random.default_rng(0)
     n_clases, por_clase, alto, ancho = 6, 20, 8, 8
     medias = rng.normal(size=(n_clases, alto * ancho))
     y = np.repeat(np.arange(n_clases), por_clase)
     X = medias[y] + 0.3 * rng.normal(size=(y.size, alto * ancho))
+    X = (X - X.min()) / (X.max() - X.min())
+
     return ConjuntoRostros(
         nombre="sintetico",
         images=X.reshape(-1, alto, ancho),

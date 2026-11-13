@@ -43,6 +43,17 @@ class Particion:
     indices_train: np.ndarray
     indices_test: np.ndarray
 
+@dataclass
+class ParticionAbierta:
+    """Fotos de identidades conocidas (TRAIN y TEST) y de identidades que el modelo nunca ve."""
+
+    X_train: np.ndarray
+    X_test: np.ndarray
+    y_train: np.ndarray
+    y_test: np.ndarray
+    X_desconocidas: np.ndarray
+    y_desconocidas: np.ndarray
+    conocidas: np.ndarray
 
 @dataclass
 class ResultadoExperimento:

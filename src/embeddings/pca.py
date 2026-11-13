@@ -60,3 +60,29 @@ class ExtractorPCA(ExtractorEmbedding):
     def rostro_medio(self, alto: int, ancho: int) -> np.ndarray:
         """Media de TRAIN que sklearn resta antes de proyectar."""
         return self._modelo.mean_.reshape(alto, ancho)
+
+
+
+class ExtractorPCASinPrimeras(ExtractorPCA):
+    """PCA que descarta las primeras componentes antes de proyectar.
+    """
+
+    def __init__(
+        self,
+        n_components: int,
+        descartar: int = 3,
+        random_state: int = RANDOM_STATE,
+    ) -> None:
+        if descartar < 1:
+            raise ValueError("Debe descartar al menos una componente.")
+        super().__init__(n_components + descartar, random_state)
+        self.descartar = int(descartar)
+        self.nombre = f"pca_sin{self.descartar}"
+
+    @property
+    def dimension(self) -> int:
+        return self.n_components - self.descartar
+
+    def transform(self, X: np.ndarray) -> np.ndarray:
+        Z = self._modelo.transform(X)[:, self.descartar :]
+        return self.comprobar(Z, X.shape[0])

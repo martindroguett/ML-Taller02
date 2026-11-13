@@ -7,6 +7,8 @@ Uso (con el entorno conda activado):
     python main.py lfw            # mismo protocolo sobre LFW (50 identidades)
     python main.py experimentos   # Olivetti y LFW
     python main.py robustez       # repite el protocolo con varias semillas de split
+    python main.py extras         # luz, oclusión, desconocidos y d_PCA de Fisherfaces
+
 """
 
 from __future__ import annotations
@@ -17,7 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from src.extras import ExperimentosExtra  # noqa: E402
 from src.pipeline import PipelineExperimentos  # noqa: E402
+
 
 
 def construir_parser() -> argparse.ArgumentParser:
@@ -26,10 +30,11 @@ def construir_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "etapa",
-        choices=["olivetti", "lfw", "experimentos", "robustez"],
+        choices=["olivetti", "lfw", "experimentos", "robustez", "extras"],
         help=(
             "Conjunto a evaluar. 'experimentos' corre Olivetti y LFW; "
-            "'robustez' repite ambos con varias semillas de split."
+            "'robustez' repite ambos con varias semillas de split; "
+            "'extras' corre el análisis extendido."
         ),
     )
     return parser
@@ -43,6 +48,7 @@ def main(argv: list[str] | None = None) -> int:
         "lfw": pipeline.ejecutar_lfw,
         "experimentos": pipeline.ejecutar_experimentos,
         "robustez": pipeline.ejecutar_robustez,
+        "extras": ExperimentosExtra().ejecutar,
     }
     acciones[args.etapa]()
     return 0

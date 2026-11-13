@@ -10,7 +10,7 @@ import numpy as np
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score
 
-from src.config import REPETICIONES_TIEMPO
+from src.config import ACEPTACION_CONOCIDOS, REPETICIONES_TIEMPO
 from src.modelos import ResultadoClasificacion
 
 
@@ -31,6 +31,20 @@ def cronometrar(
         resultado = accion()
         tiempos.append(time.perf_counter() - inicio)
     return resultado, float(np.median(tiempos))
+
+def tasa_falsa_aceptacion(
+    puntaje_conocidas: np.ndarray,
+    puntaje_desconocidas: np.ndarray,
+    aceptacion: float = ACEPTACION_CONOCIDOS,
+) -> float:
+    """Fracción de desconocidos aceptados con el umbral que acepta ``aceptacion`` de los conocidos.
+
+    Un puntaje más alto significa "se parece más a alguien conocido".
+    """
+    umbral = np.quantile(puntaje_conocidas, 1 - aceptacion)
+    return float(np.mean(puntaje_desconocidas >= umbral))
+
+
 
 
 class Evaluador:

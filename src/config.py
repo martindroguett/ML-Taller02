@@ -44,6 +44,15 @@ REPETICIONES_TIEMPO = 5
 SEMILLAS_ROBUSTEZ = tuple(RANDOM_STATE + i for i in range(5))
 D_PCA_VARIANTE = 100
 
+# Extras
+D_EXTRAS = 30
+CLASIFICADORES_EXTRAS = ("svm", "knn")
+INTENSIDADES_LUZ = (0.0, 0.2, 0.4, 0.6, 0.8)
+VENTANA_OCLUSION = 8
+FRACCION_CONOCIDAS = 0.75
+ACEPTACION_CONOCIDOS = 0.9
+BARRIDO_D_PCA = (30, 50, 100, 200, 500, 1000)
+
 
 def ruta_modelo(dataset: str, embedding: str, modelo: str, d: int) -> Path:
     """Artefacto joblib de una combinación ya ajustada en TRAIN."""

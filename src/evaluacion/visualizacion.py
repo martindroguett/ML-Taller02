@@ -1,4 +1,4 @@
-"""Figuras del experimento: curva PCA, eigenfaces, fisherfaces, confusión y mapas 2D."""
+"""Figuras del experimento: curva PCA, eigenfaces, fisherfaces, confusión, mapas 2D y extras."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 
@@ -187,6 +188,104 @@ class Visualizador:
             )
             return modelo.fit_transform(Z), detalle
         raise ValueError(f"Método de mapa desconocido: {metodo}")
+
+    def iluminacion(self, tabla: pd.DataFrame, dataset: str) -> Path:
+        """Accuracy en TEST según la intensidad de la luz, media ± desviación entre semillas."""
+        modelos = list(tabla["modelo"].unique())
+        fig, ejes = plt.subplots(
+            1, len(modelos), figsize=(5.4 * len(modelos), 4.4), sharey=True, squeeze=False
+        )
+        for ax, modelo in zip(ejes[0], modelos):
+            resumen = (
+                tabla[tabla["modelo"] == modelo]
+                .groupby(["embedding", "intensidad"], sort=False)["accuracy"]
+                .agg(["mean", "std"])
+                .reset_index()
+            )
+            for embedding, curva in resumen.groupby("embedding", sort=False):
+                ax.plot(curva["intensidad"], curva["mean"], marker="o", label=embedding)
+                ax.fill_between(
+                    curva["intensidad"],
+                    curva["mean"] - curva["std"],
+                    curva["mean"] + curva["std"],
+                    alpha=0.15,
+                )
+            ax.set_title(modelo)
+            ax.set_xlabel("Intensidad de la luz lateral")
+            ax.grid(True, alpha=0.3)
+        ejes[0][0].set_ylabel("Accuracy en TEST")
+        ejes[0][0].set_ylim(0, 1.02)
+        ejes[0][-1].legend(fontsize=8)
+        fig.suptitle(f"Iluminación simulada en TEST · {dataset}", fontsize=12)
+        fig.tight_layout()
+        return self._guardar(fig, f"extras_iluminacion_{dataset}.png")
+
+    def oclusion(self, caidas: dict[str, np.ndarray], media: np.ndarray, dataset: str) -> Path:
+        """Caída de accuracy al tapar cada cuadrado, dibujada sobre el rostro medio de TRAIN."""
+        tope = max(float(caida.max()) for caida in caidas.values())
+        fig, ejes = plt.subplots(
+            1, len(caidas), figsize=(2.7 * len(caidas), 3.6), layout="constrained", squeeze=False
+        )
+        for ax, (embedding, caida) in zip(ejes[0], caidas.items()):
+            ax.imshow(media, cmap="gray")
+            imagen = ax.imshow(caida, cmap="Reds", alpha=0.65, vmin=0, vmax=tope)
+            ax.set_title(embedding, fontsize=9)
+            ax.axis("off")
+        fig.colorbar(imagen, ax=list(ejes[0]), fraction=0.03, label="Caída de accuracy (SVM)")
+        fig.suptitle(f"Importancia por oclusión · {dataset}", fontsize=12)
+        return self._guardar(fig, f"extras_oclusion_{dataset}.png")
+
+    def desconocidos(
+        self,
+        curvas: dict[str, tuple[np.ndarray, np.ndarray, float]],
+        dataset: str,
+    ) -> Path:
+        """Curva ROC de conocidos contra desconocidos con la distancia al vecino más cercano."""
+        fig, ax = plt.subplots(figsize=(5.8, 5.2))
+        for embedding, (falsos, verdaderos, auc) in curvas.items():
+            ax.plot(falsos, verdaderos, label=f"{embedding} (AUC={auc:.2f})")
+        ax.plot([0, 1], [0, 1], linestyle="--", color="gray", linewidth=1)
+        ax.set_xlabel("Desconocidos aceptados")
+        ax.set_ylabel("Conocidos aceptados")
+        ax.set_title(
+            f"Identidades desconocidas · {dataset}\ndistancia al vecino más cercano de TRAIN"
+        )
+        ax.legend(fontsize=8, loc="lower right")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+        return self._guardar(fig, f"extras_desconocidos_{dataset}.png")
+
+    def barrido_dpca(self, tabla: pd.DataFrame, dataset: str) -> Path:
+        """Accuracy de Fisherfaces en TRAIN y TEST según d_PCA, media ± desviación."""
+        resumen = tabla.groupby("d_pca")[["accuracy_train", "accuracy_test"]].agg(["mean", "std"])
+        fig, ax = plt.subplots(figsize=(7.2, 4.4))
+        for columna, etiqueta in (("accuracy_train", "TRAIN"), ("accuracy_test", "TEST")):
+            media = resumen[(columna, "mean")]
+            desviacion = resumen[(columna, "std")]
+            ax.plot(resumen.index, media, marker="o", label=etiqueta)
+            ax.fill_between(resumen.index, media - desviacion, media + desviacion, alpha=0.15)
+        maximo = int(resumen.index.max())
+        ax.annotate(
+            "N − C",
+            (maximo, resumen[("accuracy_test", "mean")].iloc[-1]),
+            textcoords="offset points",
+            xytext=(-30, 10),
+            fontsize=8,
+        )
+        ax.set_xscale("log")
+        ax.set_xticks(resumen.index, [str(int(d)) for d in resumen.index])
+        ax.minorticks_off()
+        ax.set_xlabel("d_PCA: componentes que recibe LDA (escala log)")
+        ax.set_ylabel("Accuracy (SVM)")
+        ax.set_ylim(0, 1.02)
+        d_lda = int(tabla["d_lda"].iloc[0])
+        ax.set_title(f"Fisherfaces según d_PCA · {dataset} · d_LDA={d_lda}")
+        ax.legend(loc="lower left")
+        ax.grid(True, alpha=0.3)
+        fig.tight_layout()
+        return self._guardar(fig, f"extras_barrido_dpca_{dataset}.png")
+
+
 
     @staticmethod
     def _pintar_rostro(ax: plt.Axes, imagen: np.ndarray, titulo: str) -> None:

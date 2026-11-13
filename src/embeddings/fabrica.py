@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from src.config import D_PCA_VARIANTE, DIMENSIONES
+from src.config import D_EXTRAS, D_PCA_VARIANTE, DIMENSIONES
 from src.embeddings.base import ExtractorEmbedding
 from src.embeddings.fisherfaces import ExtractorFisherfaces
 from src.embeddings.lda import ExtractorLDA
-from src.embeddings.pca import ExtractorPCA
+from src.embeddings.pca import ExtractorPCA, ExtractorPCASinPrimeras
 
 
 class FabricaExtractores:
@@ -53,6 +53,23 @@ class FabricaExtractores:
                 d_lda = self.dimension_lda(d, n_clases)
                 extractores.append(ExtractorFisherfaces(d_pca=d_pca, d_lda=d_lda, nombre=nombre))
         return extractores
+
+    def para_extras(self, n_clases: int, d: int = D_EXTRAS) -> list[ExtractorEmbedding]:
+        """Embeddings que compara el análisis extendido, todos con d coordenadas."""
+        d_lda = self.dimension_lda(d, n_clases)
+        return [
+            ExtractorPCA(n_components=d),
+            ExtractorPCASinPrimeras(n_components=d),
+            ExtractorLDA(n_components=d_lda),
+            ExtractorFisherfaces(d_pca=d, d_lda=d_lda),
+            ExtractorFisherfaces(
+                d_pca=D_PCA_VARIANTE,
+                d_lda=d_lda,
+                nombre=f"fisherfaces_pca{D_PCA_VARIANTE}",
+            ),
+        ]
+
+
 
     @staticmethod
     def dimension_lda(d: int, n_clases: int) -> int:
