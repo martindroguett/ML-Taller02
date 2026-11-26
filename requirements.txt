@@ -6,3 +6,4 @@ matplotlib
 seaborn
 umap-learn
 joblib
+python-dotenv
