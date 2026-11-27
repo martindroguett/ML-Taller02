@@ -11,6 +11,9 @@ from sklearn.tree import DecisionTreeClassifier
 
 from src.config import CLASIFICADORES, RANDOM_STATE
 
+# scikit-learn 1.9 depreca probability=True dentro de fit.
+# El aviso se silencia solo para ese mensaje: predict debe seguir el margen.
+# CalibratedClassifierCV cambia la identidad elegida.
 warnings.filterwarnings(
     "ignore",
     message=r"The `probability` parameter was deprecated",

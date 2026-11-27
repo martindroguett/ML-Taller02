@@ -62,9 +62,12 @@ class ExtractorPCA(ExtractorEmbedding):
         return self._modelo.mean_.reshape(alto, ancho)
 
 
-
 class ExtractorPCASinPrimeras(ExtractorPCA):
     """PCA que descarta las primeras componentes antes de proyectar.
+
+    En rostros, las primeras componentes capturan sobre todo la iluminación
+    (Belhumeur et al., 1997). Se ajustan d + descartar componentes y se
+    conservan las últimas d.
     """
 
     def __init__(

@@ -32,6 +32,7 @@ def cronometrar(
         tiempos.append(time.perf_counter() - inicio)
     return resultado, float(np.median(tiempos))
 
+
 def tasa_falsa_aceptacion(
     puntaje_conocidas: np.ndarray,
     puntaje_desconocidas: np.ndarray,
@@ -39,12 +40,12 @@ def tasa_falsa_aceptacion(
 ) -> float:
     """Fracción de desconocidos aceptados con el umbral que acepta ``aceptacion`` de los conocidos.
 
-    Un puntaje más alto significa "se parece más a alguien conocido".
+    Es un punto de la curva ROC (falsa aceptación cuando se acepta esa fracción
+    de conocidos), no un umbral elegido para operar el sistema. Un puntaje más
+    alto significa "se parece más a alguien conocido".
     """
     umbral = np.quantile(puntaje_conocidas, 1 - aceptacion)
     return float(np.mean(puntaje_desconocidas >= umbral))
-
-
 
 
 class Evaluador:

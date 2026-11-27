@@ -11,6 +11,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+# Raíz del repositorio (un nivel sobre src/).
 RAIZ = Path(__file__).resolve().parent.parent
 load_dotenv(RAIZ / ".env")
 
@@ -25,6 +26,7 @@ DIR_CACHE = Path(_cache) if Path(_cache).is_absolute() else RAIZ / _cache
 RANDOM_STATE = int(os.getenv("RANDOM_STATE", "42"))
 TEST_SIZE = float(os.getenv("TEST_SIZE", "0.25"))
 
+# Dimensiones que se informan en la tabla. LDA queda acotada a C - 1.
 DIMENSIONES = (10, 20, 30)
 DIMENSION_MAPAS = 20
 
@@ -41,16 +43,19 @@ LFW_RESIZE = 0.5
 
 REPETICIONES_TIEMPO = 5
 
+# Semillas de robustez y extras; la primera es la del protocolo.
 SEMILLAS_ROBUSTEZ = tuple(RANDOM_STATE + i for i in range(5))
+# Fisherfaces con más componentes PCA que LDA. El 100 viene de la demostración
+# del curso (PCA(100) -> LDA(20)).
 D_PCA_VARIANTE = 100
 
-# Extras
+# Análisis extendido (python main.py extras).
 D_EXTRAS = 30
 CLASIFICADORES_EXTRAS = ("svm", "knn")
 INTENSIDADES_LUZ = (0.0, 0.2, 0.4, 0.6, 0.8)
-VENTANA_OCLUSION = 8
+VENTANA_OCLUSION = 8  # lado del cuadrado ocluido, en píxeles
 FRACCION_CONOCIDAS = 0.75
-ACEPTACION_CONOCIDOS = 0.9
+ACEPTACION_CONOCIDOS = 0.9  # conocidos aceptados al fijar el umbral
 BARRIDO_D_PCA = (30, 50, 100, 200, 500, 1000)
 
 

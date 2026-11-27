@@ -54,7 +54,6 @@ class DivisorEstratificado:
             )
 
 
-
 class DivisorIdentidades:
     """Separa identidades conocidas de desconocidas antes de dividir las fotos.
 

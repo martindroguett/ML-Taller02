@@ -239,6 +239,7 @@ class Visualizador:
         self,
         curvas: dict[str, tuple[np.ndarray, np.ndarray, float]],
         dataset: str,
+        semilla: int,
     ) -> Path:
         """Curva ROC de conocidos contra desconocidos con la distancia al vecino más cercano."""
         fig, ax = plt.subplots(figsize=(5.8, 5.2))
@@ -248,7 +249,8 @@ class Visualizador:
         ax.set_xlabel("Desconocidos aceptados")
         ax.set_ylabel("Conocidos aceptados")
         ax.set_title(
-            f"Identidades desconocidas · {dataset}\ndistancia al vecino más cercano de TRAIN"
+            f"Identidades desconocidas · {dataset} · semilla {semilla}\n"
+            "distancia al vecino más cercano de TRAIN"
         )
         ax.legend(fontsize=8, loc="lower right")
         ax.grid(True, alpha=0.3)
@@ -284,8 +286,6 @@ class Visualizador:
         ax.grid(True, alpha=0.3)
         fig.tight_layout()
         return self._guardar(fig, f"extras_barrido_dpca_{dataset}.png")
-
-
 
     @staticmethod
     def _pintar_rostro(ax: plt.Axes, imagen: np.ndarray, titulo: str) -> None:

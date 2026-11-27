@@ -1,6 +1,7 @@
 """Análisis extendido: luz, oclusión, identidades desconocidas y d_PCA de Fisherfaces.
 
-Los modelos se ajustan como en PipelineExperimentos, solo con TRAIN, y las perturbaciones tocan solo TEST.
+Nada de esto es parte del protocolo. Los modelos se ajustan como en
+PipelineExperimentos, solo con TRAIN, y las perturbaciones tocan solo TEST.
 """
 
 from __future__ import annotations
@@ -64,6 +65,7 @@ class ExperimentosExtra:
                 tablas["oclusion"] += self._oclusion(conjunto, particion, modelos, semilla)
                 filas, curvas = self._desconocidos(conjunto, semilla)
                 tablas["desconocidos"] += filas
+                # Las curvas ROC se dibujan solo para la semilla del protocolo.
                 curvas_roc = curvas_roc or curvas
                 tablas["barrido_dpca"] += self._barrido_dpca(conjunto, particion, semilla)
                 print(f"  semilla {semilla} lista")
@@ -242,7 +244,7 @@ class ExperimentosExtra:
         media = referencia.X_train.mean(axis=0).reshape(conjunto.alto, conjunto.ancho)
         self.visualizador.oclusion(self._mapas_oclusion(oclusion, conjunto), media, nombre)
 
-        self.visualizador.desconocidos(curvas_roc, nombre)
+        self.visualizador.desconocidos(curvas_roc, nombre, self.semillas[0])
 
         barrido = pd.DataFrame(tablas["barrido_dpca"])
         self.visualizador.barrido_dpca(barrido[barrido["dataset"] == nombre], nombre)

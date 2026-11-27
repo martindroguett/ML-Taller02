@@ -10,6 +10,6 @@ __all__ = [
     "CargadorOlivetti",
     "CargadorRostros",
     "DivisorEstratificado",
-    "validar_conjunto",
     "DivisorIdentidades",
+    "validar_conjunto",
 ]

@@ -6,7 +6,8 @@ import numpy as np
 import pytest
 from sklearn.metrics import accuracy_score
 
-from src.datos.division import DivisorIdentidades
+from src.config import VENTANA_OCLUSION
+from src.datos.division import DivisorEstratificado, DivisorIdentidades
 from src.embeddings import (
     ExtractorFisherfaces,
     ExtractorLDA,
@@ -17,6 +18,7 @@ from src.embeddings.fabrica import FabricaExtractores
 from src.evaluacion.metricas import tasa_falsa_aceptacion
 from src.evaluacion.perturbaciones import iluminar, ocluir, ventanas
 from src.extras import ExperimentosExtra
+from src.modelos import ConjuntoRostros
 
 
 class FabricaPequena(FabricaExtractores):
@@ -25,6 +27,16 @@ class FabricaPequena(FabricaExtractores):
     def para_extras(self, n_clases: int, d: int = 5):
         d_lda = self.dimension_lda(d, n_clases)
         return [ExtractorPCA(d), ExtractorFisherfaces(d_pca=10, d_lda=d_lda)]
+
+
+def conjunto_10x10() -> ConjuntoRostros:
+    """Como el fixture, pero con fotos de 10×10: hay más píxeles que N − C."""
+    rng = np.random.default_rng(1)
+    y = np.repeat(np.arange(6), 20)
+    X = rng.normal(size=(6, 100))[y] + 0.3 * rng.normal(size=(y.size, 100))
+    X = (X - X.min()) / (X.max() - X.min())
+    nombres = [f"Identidad {i}" for i in range(6)]
+    return ConjuntoRostros("sintetico", X.reshape(-1, 10, 10), X, y, nombres, 10, 10)
 
 
 def test_iluminar_con_intensidad_cero_no_cambia_la_foto(conjunto):
@@ -124,3 +136,30 @@ def test_el_barrido_de_dpca_termina_en_n_menos_c():
     assert valores[-1] == 260
     assert valores == sorted(valores)
     assert all(30 <= d <= 260 for d in valores)
+
+
+def test_oclusion_mide_la_caida_respecto_de_test_sin_tapar():
+    conjunto = conjunto_10x10()
+    particion = DivisorEstratificado(test_size=0.25, random_state=42).dividir(conjunto)
+    extras = ExperimentosExtra(fabrica_extractores=FabricaPequena())
+    modelos = extras.ajustar(particion.X_train, particion.y_train, conjunto.n_clases)
+    filas = extras._oclusion(conjunto, particion, modelos, semilla=42)
+
+    cuadrados = list(ventanas(conjunto.alto, conjunto.ancho, VENTANA_OCLUSION))
+    assert len(filas) == len(modelos) * len(cuadrados)
+    for fila in filas:
+        extractor, clasificadores, _ = modelos[fila["embedding"]]
+        Z_test = extractor.transform(particion.X_test)
+        base = accuracy_score(particion.y_test, clasificadores["svm"].predict(Z_test))
+        assert fila["caida"] == pytest.approx(base - fila["accuracy"])
+
+
+def test_el_barrido_evalua_cada_d_pca_hasta_n_menos_c():
+    conjunto = conjunto_10x10()
+    particion = DivisorEstratificado(test_size=0.25, random_state=42).dividir(conjunto)
+    filas = ExperimentosExtra()._barrido_dpca(conjunto, particion, semilla=42)
+
+    n_menos_c = particion.y_train.size - conjunto.n_clases
+    assert [f["d_pca"] for f in filas] == [30, 50, n_menos_c]
+    assert all(f["d_lda"] == conjunto.n_clases - 1 for f in filas)
+    assert all(0 <= f["accuracy_test"] <= 1 for f in filas)

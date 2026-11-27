@@ -1,9 +1,0 @@
-streamlit
-scikit-learn
-pandas
-numpy
-matplotlib
-seaborn
-umap-learn
-joblib
-python-dotenv

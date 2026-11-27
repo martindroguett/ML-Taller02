@@ -8,7 +8,6 @@ Uso (con el entorno conda activado):
     python main.py experimentos   # Olivetti y LFW
     python main.py robustez       # repite el protocolo con varias semillas de split
     python main.py extras         # luz, oclusión, desconocidos y d_PCA de Fisherfaces
-
 """
 
 from __future__ import annotations
@@ -17,11 +16,11 @@ import argparse
 import sys
 from pathlib import Path
 
+# Permite `python main.py` sin instalar el paquete.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from src.extras import ExperimentosExtra  # noqa: E402
 from src.pipeline import PipelineExperimentos  # noqa: E402
-
 
 
 def construir_parser() -> argparse.ArgumentParser:

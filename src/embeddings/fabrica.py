@@ -69,8 +69,6 @@ class FabricaExtractores:
             ),
         ]
 
-
-
     @staticmethod
     def dimension_lda(d: int, n_clases: int) -> int:
         """LDA no puede superar C − 1 ni pedir más coordenadas que las de entrada."""
